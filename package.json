@@ -1,6 +1,6 @@
 {
   "name": "expect-firestore",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "API client and Jasmine matchers for the Firestore Rules API",
   "main": "./lib/index.js",
   "repository": "https://github.com/GitbookIO/expect-firestore",
