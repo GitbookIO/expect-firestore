@@ -57,7 +57,7 @@ This module is designed to easily be integrated into jest or jasmine. It exports
 import fs from 'fs';
 import * as firestore from 'expect-firestore';
 
-const CREDENTIAL = fs.readFileSync('credential.json', { encoding: 'utf8' });
+const CREDENTIAL = require('credential.json');
 const RULES = fs.readFileSync('firestore.rules', { encoding: 'utf8' });
 
 beforeAll(async () => {
