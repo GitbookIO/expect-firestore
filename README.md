@@ -14,12 +14,12 @@ $ yarn add expect-firestore
 
 ```js
 import assert from 'assert';
-import { Database } from 'expect-firestore';
+import * as firestore from 'expect-firestore';
 
-const database = new Database({
+const database = new firestore.Database({
     // Credentials from firebase console
     credential: { project_id: '...', ... },
-    // Fake data to test against
+    // Fake data to test assertions against
     data: {
         // See src/__tests__/fixtures/db.json for an example
         users: [
@@ -45,20 +45,13 @@ const database = new Database({
 await database.authorize();
 
 // Test a get
-const result = await database.testRules({
-    expectation: 'ALLOW',
-    request: {
-        path: '/databases/(default)/documents/users/userA',
-        method: 'get'
-    }
-});
-
-assert.equal(result.state, 'SUCCESS')
+const result = await database.canGet({ uid: 'some_user' }, 'users/userA');
+assert.equal(result, true);
 ```
 
-### With jest / jasmine
+### Example with jest / jasmine
 
-This module is designed to easily be integrated into jest or jasmine. See below for using it as a normal module.
+This module is designed to easily be integrated into jest or jasmine. It exports a singleton database.
 
 ```js
 import fs from 'fs';

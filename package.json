@@ -28,7 +28,8 @@
   },
   "scripts": {
     "lint": "eslint ./src",
-    "test": "jest ./src"
+    "test": "jest ./src",
+    "prepare": "babel --ignore '**/__tests__/*.js' --out-dir ./lib ./src"
   },
   "dependencies": {
     "googleapis": "^23.0.0"
