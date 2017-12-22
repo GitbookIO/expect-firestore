@@ -1,5 +1,7 @@
 # `expect-firestore`
 
+[![Build Status](https://travis-ci.org/GitbookIO/expect-firestore.svg?branch=master)](https://travis-ci.org/GitbookIO/expect-firestore)
+
 Node module to easily unit tests Firestore rules. It abstract the Firestore Rules testing API to easily mock a dataset.
 
 ## Install
