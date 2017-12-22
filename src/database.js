@@ -6,8 +6,6 @@ import type {
     FirestoreCollections,
     FirestoreCollection,
     FirestoreDocument,
-    FirestoreRequest,
-    FirestoreResource,
     FirestoreTestInput,
     FirestoreTestResult,
     FirestoreAuth
@@ -242,6 +240,30 @@ class Database {
 
         return result.state == 'SUCCESS';
     }
+
+    async canUpdate(
+        auth: FirestoreAuth,
+        path: string,
+        data: Object
+    ): Promise<boolean> {
+        const result = await this.testRules(
+            createUpdateTest(true, auth, path, data)
+        );
+
+        return result.state == 'SUCCESS';
+    }
+
+    async cannotUpdate(
+        auth: FirestoreAuth,
+        path: string,
+        data: Object
+    ): Promise<boolean> {
+        const result = await this.testRules(
+            createUpdateTest(false, auth, path, data)
+        );
+
+        return result.state == 'SUCCESS';
+    }
 }
 
 function createDocumentPath(path: string): string {
@@ -273,7 +295,28 @@ function createSetTest(
     const request = {
         auth,
         path: createDocumentPath(path),
-        method: 'get'
+        method: 'post'
+    };
+    const resource = {
+        data
+    };
+    return {
+        expectation: allow ? 'ALLOW' : 'DENY',
+        request,
+        resource
+    };
+}
+
+function createUpdateTest(
+    allow: boolean,
+    auth: FirestoreAuth,
+    path: string,
+    data: Object
+): FirestoreTestInput {
+    const request = {
+        auth,
+        path: createDocumentPath(path),
+        method: 'patch'
     };
     const resource = {
         data

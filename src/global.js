@@ -89,6 +89,22 @@ async function cannotSet(
     return assertDatabase().cannotSet(auth, path, data);
 }
 
+async function canUpdate(
+    auth: FirestoreAuth,
+    path: string,
+    data: Object
+): Promise<boolean> {
+    return assertDatabase().canUpdate(auth, path, data);
+}
+
+async function cannotUpdate(
+    auth: FirestoreAuth,
+    path: string,
+    data: Object
+): Promise<boolean> {
+    return assertDatabase().cannotUpdate(auth, path, data);
+}
+
 export {
     authorize,
     setData,
@@ -98,5 +114,7 @@ export {
     canGet,
     cannotGet,
     canSet,
-    cannotSet
+    cannotSet,
+    canUpdate,
+    cannotUpdate
 };
