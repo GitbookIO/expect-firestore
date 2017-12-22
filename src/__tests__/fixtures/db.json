@@ -1,0 +1,38 @@
+{
+    "users": [
+        {
+            "key": "userA",
+            "fields": {
+                "name": "Steve Jobs"
+            },
+            "collections": {
+                "companies": [
+                    {
+                        "key": "companyA",
+                        "fields": {
+                            "name": "Apple"
+                        },
+                        "collections": {}
+                    }
+                ]
+            }
+        },
+        {
+            "key": "userB",
+            "fields": {
+                "name": "Bill Gates"
+            },
+            "collections": {
+                "companies": [
+                    {
+                        "key": "companyA",
+                        "fields": {
+                            "name": "Microsoft"
+                        },
+                        "collections": {}
+                    }
+                ]
+            }
+        }
+    ]
+}
