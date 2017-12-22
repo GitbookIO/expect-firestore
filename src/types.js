@@ -38,6 +38,13 @@ export type FirestoreResource = {
     data: Object
 };
 
+// Input for a test
+export type FirestoreTestInput = {
+    expectation: 'ALLOW' | 'DENY',
+    request: FirestoreRequest,
+    resource?: FirestoreResource
+};
+
 // Result of a test.
 export type FirestoreTestResult = {
     state: 'SUCCESS' | 'FAILURE'

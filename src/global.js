@@ -73,6 +73,22 @@ async function cannotGet(auth: FirestoreAuth, path: string): Promise<boolean> {
     return assertDatabase().cannotGet(auth, path);
 }
 
+async function canSet(
+    auth: FirestoreAuth,
+    path: string,
+    data: Object
+): Promise<boolean> {
+    return assertDatabase().canSet(auth, path, data);
+}
+
+async function cannotSet(
+    auth: FirestoreAuth,
+    path: string,
+    data: Object
+): Promise<boolean> {
+    return assertDatabase().cannotSet(auth, path, data);
+}
+
 export {
     authorize,
     setData,
@@ -80,5 +96,7 @@ export {
     getDatabase,
     assertDatabase,
     canGet,
-    cannotGet
+    cannotGet,
+    canSet,
+    cannotSet
 };

@@ -8,6 +8,7 @@ import type {
     FirestoreDocument,
     FirestoreRequest,
     FirestoreResource,
+    FirestoreTestInput,
     FirestoreTestResult,
     FirestoreAuth
 } from './types';
@@ -160,11 +161,7 @@ class Database {
     /*
      * Test an assertion against the current rules and dataset.
      */
-    async testRules(test: {
-        expectation: 'ALLOW' | 'DENY',
-        request: FirestoreRequest,
-        resource?: FirestoreResource
-    }): Promise<FirestoreTestResult> {
+    async testRules(test: FirestoreTestInput): Promise<FirestoreTestResult> {
         const functionMocks = this.createMockFunctions();
 
         return new Promise((resolve, reject) => {
@@ -211,29 +208,37 @@ class Database {
      */
 
     async canGet(auth: FirestoreAuth, path: string): Promise<boolean> {
-        const request = {
-            auth,
-            path: createDocumentPath(path),
-            method: 'get'
-        };
-        const result = await this.testRules({
-            expectation: 'ALLOW',
-            request
-        });
+        const result = await this.testRules(createGetTest(true, auth, path));
 
         return result.state == 'SUCCESS';
     }
 
     async cannotGet(auth: FirestoreAuth, path: string): Promise<boolean> {
-        const request = {
-            auth,
-            path: createDocumentPath(path),
-            method: 'get'
-        };
-        const result = await this.testRules({
-            expectation: 'DENY',
-            request
-        });
+        const result = await this.testRules(createGetTest(false, auth, path));
+
+        return result.state == 'SUCCESS';
+    }
+
+    async canSet(
+        auth: FirestoreAuth,
+        path: string,
+        data: Object
+    ): Promise<boolean> {
+        const result = await this.testRules(
+            createSetTest(true, auth, path, data)
+        );
+
+        return result.state == 'SUCCESS';
+    }
+
+    async cannotSet(
+        auth: FirestoreAuth,
+        path: string,
+        data: Object
+    ): Promise<boolean> {
+        const result = await this.testRules(
+            createSetTest(false, auth, path, data)
+        );
 
         return result.state == 'SUCCESS';
     }
@@ -241,6 +246,43 @@ class Database {
 
 function createDocumentPath(path: string): string {
     return `/databases/(default)/documents/${path}`;
+}
+
+function createGetTest(
+    allow: boolean,
+    auth: FirestoreAuth,
+    path: string
+): FirestoreTestInput {
+    const request = {
+        auth,
+        path: createDocumentPath(path),
+        method: 'get'
+    };
+    return {
+        expectation: allow ? 'ALLOW' : 'DENY',
+        request
+    };
+}
+
+function createSetTest(
+    allow: boolean,
+    auth: FirestoreAuth,
+    path: string,
+    data: Object
+): FirestoreTestInput {
+    const request = {
+        auth,
+        path: createDocumentPath(path),
+        method: 'get'
+    };
+    const resource = {
+        data
+    };
+    return {
+        expectation: allow ? 'ALLOW' : 'DENY',
+        request,
+        resource
+    };
 }
 
 export default Database;
