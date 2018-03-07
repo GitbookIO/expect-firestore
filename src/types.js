@@ -30,7 +30,7 @@ export type FirestoreAuth = {
 export type FirestoreRequest = {
     auth: FirestoreAuth,
     path: string,
-    method: 'get' | 'post' | 'patch'
+    method: 'get' | 'list' | 'create' | 'update' | 'delete' | 'read' | 'write'
 };
 
 // Resource for a test (for write)

@@ -295,7 +295,7 @@ function createSetTest(
     const request = {
         auth,
         path: createDocumentPath(path),
-        method: 'post'
+        method: 'create'
     };
     const resource = {
         data
@@ -316,7 +316,7 @@ function createUpdateTest(
     const request = {
         auth,
         path: createDocumentPath(path),
-        method: 'patch'
+        method: 'update'
     };
     const resource = {
         data
