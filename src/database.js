@@ -105,7 +105,7 @@ class Database {
                 functions.concat([
                     {
                         function: 'get',
-                        args: [{ exact_value: path }],
+                        args: [{ exact_value: createDocumentPath(path) }],
                         result: {
                             value: {
                                 data: doc ? doc.fields : null
@@ -114,7 +114,7 @@ class Database {
                     },
                     {
                         function: 'exists',
-                        args: [{ exact_value: path }],
+                        args: [{ exact_value: createDocumentPath(path) }],
                         result: {
                             value: {
                                 data: !!doc
