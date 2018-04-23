@@ -11,6 +11,8 @@ import type {
     FirestoreAuth
 } from './types';
 
+import type { BatchOperation } from './batch';
+
 class Database {
     credential: GoogleCredential;
     collections: FirestoreCollections;
@@ -264,6 +266,28 @@ class Database {
 
         return result.state == 'SUCCESS';
     }
+
+    async canCommit(
+        auth: FirestoreAuth,
+        batch: BatchOperation[]
+    ): Promise<boolean> {
+        const result = await this.testRules(
+            createCommitTest(true, auth, batch)
+        );
+
+        return result.state == 'SUCCESS';
+    }
+
+    async cannotCommit(
+        auth: FirestoreAuth,
+        batch: BatchOperation[]
+    ): Promise<boolean> {
+        const result = await this.testRules(
+            createCommitTest(false, auth, batch)
+        );
+
+        return result.state == 'SUCCESS';
+    }
 }
 
 function createDocumentPath(path: string): string {
@@ -326,6 +350,14 @@ function createUpdateTest(
         request,
         resource
     };
+}
+
+function createCommitTest(
+    allow: boolean,
+    auth: FirestoreAuth,
+    batch: BatchOperation[]
+): FirestoreTestInput {
+    throw new Error('not yet supported');
 }
 
 export default Database;
