@@ -217,6 +217,7 @@ class Database {
             }
 
             this.client.projects.test(params, (error, result) => {
+                console.log(result);
                 if (error) {
                     reject(error);
                 } else {

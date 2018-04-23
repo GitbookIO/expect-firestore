@@ -10,6 +10,8 @@ function assert(result: FirestoreTestResult): void {
     }
 
     console.log(result);
+
+    throw new Error('Failed');
 }
 
 export default assert;
