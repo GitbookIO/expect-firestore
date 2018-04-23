@@ -326,10 +326,11 @@ class Database {
         path: string,
         data: Object
     ): FirestoreTestInput {
+        const doc = this.getDocument(path);
         const request = {
             auth,
             path: createDocumentPath(path),
-            method: 'create'
+            method: doc ? 'update' : 'create'
         };
         const resource = {
             data
