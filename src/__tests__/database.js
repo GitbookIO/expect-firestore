@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import Database from '../database';
+import assert from '../assert';
 
 const RULES = fs.readFileSync(
     path.join(__dirname, 'fixtures/firestore.rules'),
@@ -47,5 +48,27 @@ describe('testRules', () => {
             }
         });
         expect(result.state).toBe('SUCCESS');
+    });
+});
+
+describe('canGet', () => {
+    beforeAll(async () => {
+        await db.authorize();
+    });
+
+    it('allow not reject allowed write', async () => {
+        const result = await db.canGet({}, 'users/userA');
+        assert(result);
+    });
+});
+
+describe('canSet', () => {
+    beforeAll(async () => {
+        await db.authorize();
+    });
+
+    it('allow throw error for rejected operations', async () => {
+        const result = await db.canSet({}, 'users/userA', { name: 'Hello' });
+        assert(result);
     });
 });

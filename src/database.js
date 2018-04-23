@@ -230,86 +230,64 @@ class Database {
      * Utilities for assertions.
      */
 
-    async canGet(auth: FirestoreAuth, path: string): Promise<boolean> {
-        const result = await this.testRules(createGetTest(true, auth, path));
-
-        return result.state == 'SUCCESS';
+    async canGet(
+        auth: FirestoreAuth,
+        path: string
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createGetTest(true, auth, path));
     }
 
-    async cannotGet(auth: FirestoreAuth, path: string): Promise<boolean> {
-        const result = await this.testRules(createGetTest(false, auth, path));
-
-        return result.state == 'SUCCESS';
+    async cannotGet(
+        auth: FirestoreAuth,
+        path: string
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createGetTest(false, auth, path));
     }
 
     async canSet(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createSetTest(true, auth, path, data)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createSetTest(true, auth, path, data));
     }
 
     async cannotSet(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createSetTest(false, auth, path, data)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createSetTest(false, auth, path, data));
     }
 
     async canUpdate(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createUpdateTest(true, auth, path, data)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createUpdateTest(true, auth, path, data));
     }
 
     async cannotUpdate(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createUpdateTest(false, auth, path, data)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createUpdateTest(false, auth, path, data));
     }
 
     async canCommit(
         auth: FirestoreAuth,
         batch: BatchOperation[]
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createCommitTest(true, auth, batch)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createCommitTest(true, auth, batch));
     }
 
     async cannotCommit(
         auth: FirestoreAuth,
         batch: BatchOperation[]
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createCommitTest(false, auth, batch)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<FirestoreTestResult> {
+        return this.testRules(createCommitTest(false, auth, batch));
     }
 }
 
