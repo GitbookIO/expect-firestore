@@ -35,7 +35,7 @@ export type FirestoreRequest = {
 
 // Resource for a test (for write)
 export type FirestoreResource = {
-    data: Object
+    data: ?Object
 };
 
 // Input for a test
@@ -47,5 +47,7 @@ export type FirestoreTestInput = {
 
 // Result of a test.
 export type FirestoreTestResult = {
-    state: 'SUCCESS' | 'FAILURE'
+    test: FirestoreTestInput,
+    state: 'SUCCESS' | 'FAILURE',
+    debugMessages?: string[]
 };

@@ -63,6 +63,11 @@ class Database {
         const collectionName = Path.basename(collectionPath);
         const docPath = Path.dirname(collectionPath);
 
+        if (docPath == '.') {
+            const { collections } = this;
+            return collections[collectionName] || [];
+        }
+
         const doc = this.getDocument(docPath);
 
         if (doc) {
@@ -217,11 +222,13 @@ class Database {
             }
 
             this.client.projects.test(params, (error, result) => {
-                console.log(result);
                 if (error) {
                     reject(error);
                 } else {
-                    resolve(result.testResults[0]);
+                    resolve({
+                        test,
+                        ...result.testResults[0]
+                    });
                 }
             });
         });
@@ -235,14 +242,14 @@ class Database {
         auth: FirestoreAuth,
         path: string
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createGetTest(true, auth, path));
+        return this.testRules(this.createGetTest(true, auth, path));
     }
 
     async cannotGet(
         auth: FirestoreAuth,
         path: string
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createGetTest(false, auth, path));
+        return this.testRules(this.createGetTest(false, auth, path));
     }
 
     async canSet(
@@ -250,7 +257,7 @@ class Database {
         path: string,
         data: Object
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createSetTest(true, auth, path, data));
+        return this.testRules(this.createSetTest(true, auth, path, data));
     }
 
     async cannotSet(
@@ -258,7 +265,7 @@ class Database {
         path: string,
         data: Object
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createSetTest(false, auth, path, data));
+        return this.testRules(this.createSetTest(false, auth, path, data));
     }
 
     async canUpdate(
@@ -266,7 +273,7 @@ class Database {
         path: string,
         data: Object
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createUpdateTest(true, auth, path, data));
+        return this.testRules(this.createUpdateTest(true, auth, path, data));
     }
 
     async cannotUpdate(
@@ -274,92 +281,98 @@ class Database {
         path: string,
         data: Object
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createUpdateTest(false, auth, path, data));
+        return this.testRules(this.createUpdateTest(false, auth, path, data));
     }
 
     async canCommit(
         auth: FirestoreAuth,
         batch: BatchOperation[]
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createCommitTest(true, auth, batch));
+        return this.testRules(this.createCommitTest(true, auth, batch));
     }
 
     async cannotCommit(
         auth: FirestoreAuth,
         batch: BatchOperation[]
     ): Promise<FirestoreTestResult> {
-        return this.testRules(createCommitTest(false, auth, batch));
+        return this.testRules(this.createCommitTest(false, auth, batch));
+    }
+
+    /*
+     * Factories for tests
+     */
+    createGetTest(
+        allow: boolean,
+        auth: FirestoreAuth,
+        path: string
+    ): FirestoreTestInput {
+        const doc = this.getDocument(path);
+        const request = {
+            auth,
+            path: createDocumentPath(path),
+            method: 'get'
+        };
+
+        return {
+            expectation: allow ? 'ALLOW' : 'DENY',
+            request,
+            resource: { data: doc ? doc.fields : null }
+        };
+    }
+
+    createSetTest(
+        allow: boolean,
+        auth: FirestoreAuth,
+        path: string,
+        data: Object
+    ): FirestoreTestInput {
+        const request = {
+            auth,
+            path: createDocumentPath(path),
+            method: 'create'
+        };
+        const resource = {
+            data
+        };
+        return {
+            expectation: allow ? 'ALLOW' : 'DENY',
+            request,
+            resource
+        };
+    }
+
+    createUpdateTest(
+        allow: boolean,
+        auth: FirestoreAuth,
+        path: string,
+        data: Object
+    ): FirestoreTestInput {
+        const request = {
+            auth,
+            path: createDocumentPath(path),
+            method: 'update'
+        };
+        const resource = {
+            data
+        };
+        return {
+            expectation: allow ? 'ALLOW' : 'DENY',
+            request,
+            resource
+        };
+    }
+
+    createCommitTest(
+        allow: boolean,
+        auth: FirestoreAuth,
+        batch: BatchOperation[]
+    ): FirestoreTestInput {
+        throw new Error('not yet supported');
     }
 }
 
 function createDocumentPath(path: string): string {
     return `/databases/(default)/documents/${path}`;
-}
-
-function createGetTest(
-    allow: boolean,
-    auth: FirestoreAuth,
-    path: string
-): FirestoreTestInput {
-    const request = {
-        auth,
-        path: createDocumentPath(path),
-        method: 'get'
-    };
-    return {
-        expectation: allow ? 'ALLOW' : 'DENY',
-        request
-    };
-}
-
-function createSetTest(
-    allow: boolean,
-    auth: FirestoreAuth,
-    path: string,
-    data: Object
-): FirestoreTestInput {
-    const request = {
-        auth,
-        path: createDocumentPath(path),
-        method: 'create'
-    };
-    const resource = {
-        data
-    };
-    return {
-        expectation: allow ? 'ALLOW' : 'DENY',
-        request,
-        resource
-    };
-}
-
-function createUpdateTest(
-    allow: boolean,
-    auth: FirestoreAuth,
-    path: string,
-    data: Object
-): FirestoreTestInput {
-    const request = {
-        auth,
-        path: createDocumentPath(path),
-        method: 'update'
-    };
-    const resource = {
-        data
-    };
-    return {
-        expectation: allow ? 'ALLOW' : 'DENY',
-        request,
-        resource
-    };
-}
-
-function createCommitTest(
-    allow: boolean,
-    auth: FirestoreAuth,
-    batch: BatchOperation[]
-): FirestoreTestInput {
-    throw new Error('not yet supported');
 }
 
 export default Database;

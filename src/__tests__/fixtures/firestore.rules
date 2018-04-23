@@ -1,12 +1,22 @@
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userID} {
-      allow read: if true;
+      allow read: if resource.data != null && resource.data.public == true;
       allow update: if isCurrentUser(userID);
+
+      match /companies/{companyID} {
+          allow read: if isPublicUser(userID);
+          allow update: if isCurrentUser(userID);
+      }
+    }
+
+    function isCurrentUser(userID) {
+        return request.auth.uid == userID
+    }
+
+
+    function isPublicUser(userID) {
+        return get(/databases/$(database)/documents/users/$(userID)).data.public == true
     }
   }
-}
-
-function isCurrentUser(userID) {
-    return request.auth.uid == userID
 }

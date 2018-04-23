@@ -27,6 +27,18 @@ describe('getDocuments', () => {
     });
 });
 
+describe('getDocument', () => {
+    it('should return the right document', () => {
+        const doc = db.getDocument('users/userA');
+        expect(doc).toBeDefined();
+    });
+
+    it('should return null for non existant document', () => {
+        const doc = db.getDocument('users/userC');
+        expect(doc).not.toBeDefined();
+    });
+});
+
 describe('createMockFunctions', () => {
     it('should return exists and get methods for all documents', () => {
         const functions = db.createMockFunctions();
@@ -56,9 +68,29 @@ describe('canGet', () => {
         await db.authorize();
     });
 
-    it('allow not reject allowed write', async () => {
-        const result = await db.canGet({}, 'users/userA');
-        assert(result);
+    describe('mock of "resource"', () => {
+        it('should not throw for allowed read', async () => {
+            const result = await db.canGet({}, 'users/userB');
+            assert(result);
+        });
+
+        it('should throw for rejected read', async () => {
+            const result = await db.canGet({}, 'users/userA');
+
+            expect(() => assert(result)).toThrow(
+                'Expected the get operation to succeed.'
+            );
+        });
+    });
+
+    describe('mock of functions', () => {
+        it('should not throw for allowed read', async () => {
+            const result = await db.canGet(
+                {},
+                'users/userB/companies/companyA'
+            );
+            assert(result);
+        });
     });
 });
 
@@ -67,8 +99,17 @@ describe('canSet', () => {
         await db.authorize();
     });
 
-    it('allow throw error for rejected operations', async () => {
-        const result = await db.canSet({}, 'users/userA', { name: 'Hello' });
+    it('should not throw error for allowed operations', async () => {
+        const result = await db.canSet({ uid: 'userA' }, 'users/userA', {
+            name: 'Hello'
+        });
         assert(result);
+    });
+
+    it('should throw error for rejected operations', async () => {
+        const result = await db.canSet({}, 'users/userA', { name: 'Hello' });
+        expect(() => assert(result)).toThrow(
+            'Expected the create operation to succeed.'
+        );
     });
 });

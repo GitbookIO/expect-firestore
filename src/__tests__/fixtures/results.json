@@ -1,0 +1,11 @@
+[{
+    "state": "FAILURE",
+    "debugMessages": [
+        "Error: firestore.rules line [4], column [22]. Null value error."
+    ],
+    "errorPosition": {
+        "fileName": "firestore.rules",
+        "line": 4,
+        "column": 22
+    }
+}]
