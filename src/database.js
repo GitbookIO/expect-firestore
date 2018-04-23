@@ -1,5 +1,6 @@
 /* @flow */
 import Path from 'path';
+import FS from 'fs';
 import google from 'googleapis';
 import type {
     GoogleCredential,
@@ -24,13 +25,35 @@ class Database {
         credential,
         rules
     }: {
-        data: FirestoreCollections,
+        data?: FirestoreCollections,
         credential: GoogleCredential,
-        rules: string
+        rules?: string
     }) {
         this.credential = credential;
+        this.collections = data || {};
+        this.rules = rules || '';
+    }
+
+    /*
+     * Replace the mock data.
+     */
+    setData(data: FirestoreCollections) {
         this.collections = data;
+    }
+
+    /*
+     * Update the rules.
+     */
+    setRules(rules: string) {
         this.rules = rules;
+    }
+
+    /*
+     * Read the rules from a file.
+     */
+    setRulesFromFile(rulesFile: string) {
+        const content = FS.readFileSync(rulesFile, 'utf8');
+        this.setRules(content);
     }
 
     /*
