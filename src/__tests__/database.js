@@ -46,23 +46,6 @@ describe('createMockFunctions', () => {
     });
 });
 
-describe('testRules', () => {
-    beforeAll(async () => {
-        await db.authorize();
-    });
-
-    it('reject when rules', async () => {
-        const result = await db.testRules({
-            expectation: 'ALLOW',
-            request: {
-                method: 'get',
-                path: '/databases/(default)/documents/users/userA'
-            }
-        });
-        expect(result.state).toBe('SUCCESS');
-    });
-});
-
 describe('canGet', () => {
     beforeAll(async () => {
         await db.authorize();
@@ -107,9 +90,11 @@ describe('canSet', () => {
     });
 
     it('should throw error for rejected operations', async () => {
-        const result = await db.canSet({}, 'users/userA', { name: 'Hello' });
+        const result = await db.canSet({ uid: 'userB' }, 'users/userA', {
+            name: 'Hello'
+        });
         expect(() => assert(result)).toThrow(
-            'Expected the create operation to succeed.'
+            'Expected the update operation to succeed.'
         );
     });
 });
