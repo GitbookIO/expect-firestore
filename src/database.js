@@ -9,7 +9,6 @@ import type {
     Collection,
     Document,
     FirestoreTestCase,
-    FirestoreTestResult,
     FirestoreMockFunction,
     FirestoreAuth,
     TestSummary
@@ -133,6 +132,10 @@ class Database {
     async authorize(): Promise<void> {
         const { credential } = this;
 
+        if (this.client) {
+            return;
+        }
+
         const jwtClient = new google.auth.JWT(
             credential.client_email,
             null,
@@ -141,7 +144,7 @@ class Database {
             null
         );
 
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             jwtClient.authorize((error, tokens) => {
                 if (error) {
                     reject(error);
@@ -189,6 +192,22 @@ class Database {
                 if (error) {
                     reject(error);
                 } else {
+                    // There are some syntax error in the rules
+                    if (json.issues) {
+                        const message = json.issues
+                            .map(
+                                issue =>
+                                    `Line ${
+                                        issue.sourcePosition.line
+                                    }, column ${issue.sourcePosition.column}: ${
+                                        issue.description
+                                    }`
+                            )
+                            .join('\n\n');
+
+                        throw new Error(message);
+                    }
+
                     const {
                         testResults
                     }: { testResults: FirestoreTestResult[] } = json;
@@ -335,14 +354,37 @@ class Database {
      */
     createMockFunctions(): FirestoreMockFunction[] {
         const documents = this.getDocuments();
+        const defaults = [
+            {
+                function: 'get',
+                args: [{ anyValue: {} }],
+                result: {
+                    value: null
+                }
+            },
+            {
+                function: 'getAfter',
+                args: [{ anyValue: {} }],
+                result: {
+                    value: null
+                }
+            },
+            {
+                function: 'exists',
+                args: [{ anyValue: {} }],
+                result: {
+                    value: false
+                }
+            }
+        ];
 
-        return documents.reduce(
+        const docMocks = documents.reduce(
             (functions, { path, doc }) =>
                 functions.concat([
                     createFunctionMock(
                         'get',
                         createDocumentPath(path),
-                        doc ? doc.fields : null
+                        doc ? { data: doc.fields } : null
                     ),
                     createFunctionMock(
                         'exists',
@@ -352,6 +394,8 @@ class Database {
                 ]),
             []
         );
+
+        return defaults.concat(docMocks);
     }
 
     /*
@@ -378,7 +422,7 @@ class Database {
             return createFunctionMock(
                 'getAfter',
                 createDocumentPath(operation.document),
-                after
+                after ? { data: after } : null
             );
         });
     }
@@ -397,9 +441,7 @@ function createFunctionMock(
         function: functionName,
         args: [{ exact_value: arg }],
         result: {
-            value: {
-                data: value
-            }
+            value
         }
     };
 }

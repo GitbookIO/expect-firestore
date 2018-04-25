@@ -20,7 +20,7 @@ function assert(summary: TestSummary): void {
     throw new Error(getTestDescription(firstFailing.case));
 }
 
-function getTestDescription(test: FirestoreTestInput): string {
+function getTestDescription(test: FirestoreTestCase): string {
     const end = test.expectation == 'ALLOW' ? 'to succeed' : 'to fail';
     return `Expected the ${test.request.method} operation ${end}.`;
 }

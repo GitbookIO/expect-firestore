@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import Database from '../database';
+import Batch from '../batch';
 import assert from '../assert';
 
 const RULES = fs.readFileSync(
@@ -42,7 +43,7 @@ describe('getDocument', () => {
 describe('createMockFunctions', () => {
     it('should return exists and get methods for all documents', () => {
         const functions = db.createMockFunctions();
-        expect(functions.length).toEqual(8);
+        expect(functions.length).toEqual(11);
     });
 });
 
@@ -95,6 +96,30 @@ describe('canSet', () => {
         });
         expect(() => assert(result)).toThrow(
             'Expected the update operation to succeed.'
+        );
+    });
+});
+
+describe('canCommit', () => {
+    beforeAll(async () => {
+        await db.authorize();
+    });
+
+    it('should not throw error for allowed operations', async () => {
+        const result = await db.canCommit({ uid: 'userC' }, [
+            Batch.set('users/userC', { name: 'C' }),
+            Batch.set('settings/userC', { someFeature: true })
+        ]);
+        assert(result);
+    });
+
+    it('should throw error for rejected operations', async () => {
+        const result = await db.canCommit({ uid: 'userC' }, [
+            // Writing settings without an user
+            Batch.set('settings/userC', { someFeature: true })
+        ]);
+        expect(() => assert(result)).toThrow(
+            'Expected the create operation to succeed.'
         );
     });
 });
