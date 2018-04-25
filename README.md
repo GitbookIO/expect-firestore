@@ -80,7 +80,7 @@ Run `get`, `set`, `update` and `commit` tests using:
 - `database.canUpdate(auth: FirestoreAuth, document: string, values: Object): Promise<TestResult>`
 - `database.cannotUpdate(auth: FirestoreAuth, document: string, values: Object): Promise<TestResult>`
 - `database.canCommit(auth: FirestoreAuth, batch: BatchOperation[]): Promise<TestResult>`
-- `database.cannotUpdate(auth: FirestoreAuth, batch: firestore.BatchOperation[]): Promise<TestResult>`
+- `database.cannotCommit(auth: FirestoreAuth, batch: firestore.BatchOperation[]): Promise<TestResult>`
 
 Control test testing environment using:
 
