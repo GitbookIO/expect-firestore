@@ -335,10 +335,15 @@ class Database {
             const request = {
                 auth,
                 path: createDocumentPath(operation.document),
-                method
+                method,
+                resource: operation.data
+                    ? {
+                          data: operation.data
+                      }
+                    : null
             };
             const resource = {
-                data: operation.data || null
+                data: doc ? doc.fields : null
             };
 
             return {

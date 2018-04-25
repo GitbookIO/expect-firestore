@@ -99,13 +99,30 @@ describe('canSet', () => {
         );
     });
 
-    it('should throw error for rejected operations (validation)', async () => {
-        const result = await db.canSet({ uid: 'userA' }, 'settings2/userA', {
-            something: 2
+    describe('Validation', () => {
+        it('should not throw error for allowed operations (validation)', async () => {
+            const result = await db.canSet(
+                { uid: 'userA' },
+                'settings2/userA',
+                {
+                    something: 'some string'
+                }
+            );
+            assert(result);
         });
-        expect(() => assert(result)).toThrow(
-            'Expected the update operation to succeed.'
-        );
+
+        it('should throw error for rejected operations (validation)', async () => {
+            const result = await db.canSet(
+                { uid: 'userA' },
+                'settings2/userA',
+                {
+                    something: 2
+                }
+            );
+            expect(() => assert(result)).toThrow(
+                'Expected the create operation to succeed.'
+            );
+        });
     });
 });
 
