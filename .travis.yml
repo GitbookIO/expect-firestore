@@ -15,4 +15,4 @@ install:
 script:
 - yarn test
 - yarn run lint
-- yarn run flow
+#- yarn run flow

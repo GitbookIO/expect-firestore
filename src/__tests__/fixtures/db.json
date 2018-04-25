@@ -3,7 +3,8 @@
         {
             "key": "userA",
             "fields": {
-                "name": "Steve Jobs"
+                "name": "Steve Jobs",
+                "public": false
             },
             "collections": {
                 "companies": [
@@ -20,7 +21,8 @@
         {
             "key": "userB",
             "fields": {
-                "name": "Bill Gates"
+                "name": "Bill Gates",
+                "public": true
             },
             "collections": {
                 "companies": [

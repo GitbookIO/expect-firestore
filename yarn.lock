@@ -2108,6 +2108,18 @@ invert-kv@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/invert-kv/-/invert-kv-1.0.0.tgz#104a8e4aaca6d3d8cd157a8ef8bfab2d7a3ffdb6"
 
+is-array-like@^1.0.3:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/is-array-like/-/is-array-like-1.1.2.tgz#7f280aa777f53eb31f74e1dcd3e040923186c205"
+  dependencies:
+    is-array "^1.0.1"
+    is-function "^1.0.1"
+    is-window "^1.0.1"
+
+is-array@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a"
+
 is-arrayish@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/is-arrayish/-/is-arrayish-0.2.1.tgz#77c99840527aa8ecb1a8ba697b80645a7a926a9d"
@@ -2176,11 +2188,25 @@ is-fullwidth-code-point@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-2.0.0.tgz#a3b30a5c4f199183167aaab93beefae3ddfb654f"
 
+is-function@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/is-function/-/is-function-1.0.1.tgz#12cfb98b65b57dd3d193a3121f5f6e2f437602b5"
+
 is-glob@^2.0.0, is-glob@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/is-glob/-/is-glob-2.0.1.tgz#d096f926a3ded5600f3fdfd91198cb0888c2d863"
   dependencies:
     is-extglob "^1.0.0"
+
+is-index@^1.0.0:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/is-index/-/is-index-1.0.2.tgz#061485330cbc309e850e324ee2071454c11c6afb"
+  dependencies:
+    is-nil "^1.0.0"
+
+is-nil@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/is-nil/-/is-nil-1.0.1.tgz#2daba29e0b585063875e7b539d071f5b15937969"
 
 is-number@^2.1.0:
   version "2.1.0"
@@ -2193,6 +2219,10 @@ is-number@^3.0.0:
   resolved "https://registry.yarnpkg.com/is-number/-/is-number-3.0.0.tgz#24fd6201a4782cf50561c810276afc7d12d71195"
   dependencies:
     kind-of "^3.0.2"
+
+is-object@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/is-object/-/is-object-1.0.1.tgz#8952688c5ec2ffd6b03ecc85e769e02903083470"
 
 is-path-cwd@^1.0.0:
   version "1.0.0"
@@ -2249,6 +2279,10 @@ is-typedarray@~1.0.0:
 is-utf8@^0.2.0:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/is-utf8/-/is-utf8-0.2.1.tgz#4b0da1442104d1b336340e80797e865cf39f7d72"
+
+is-window@^1.0.1:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/is-window/-/is-window-1.0.2.tgz#2c896ca53db97de45d3c33133a65d8c9f563480d"
 
 isarray@1.0.0, isarray@^1.0.0, isarray@~1.0.0:
   version "1.0.0"
@@ -2956,6 +2990,15 @@ object-assign@^4.0.1, object-assign@^4.1.0, object-assign@^4.1.1:
 object-keys@^1.0.8:
   version "1.0.11"
   resolved "https://registry.yarnpkg.com/object-keys/-/object-keys-1.0.11.tgz#c54601778ad560f1142ce0e01bcca8b56d13426d"
+
+object-set@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/object-set/-/object-set-1.0.1.tgz#f611222f68a2b04eb9826c2df70e00050f4d30a6"
+  dependencies:
+    is-index "^1.0.0"
+    is-nil "^1.0.0"
+    is-object "^1.0.1"
+    to-path "^1.0.0"
 
 object.omit@^2.0.0:
   version "2.0.1"
@@ -3733,6 +3776,24 @@ to-fast-properties@^1.0.3:
 to-fast-properties@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/to-fast-properties/-/to-fast-properties-2.0.0.tgz#dc5e698cbd079265bc73e0377681a4e4e83f616e"
+
+to-path@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/to-path/-/to-path-1.0.1.tgz#ade88449c855925aa6464e33ff92f0b8fc5bcb8a"
+  dependencies:
+    is-array-like "^1.0.3"
+    is-nil "^1.0.0"
+    is-symbol "^1.0.1"
+    to-str "^1.0.0"
+
+to-str@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/to-str/-/to-str-1.0.0.tgz#9034248f56f439804c1fd45a3cbe8195ecb608f1"
+  dependencies:
+    is-function "^1.0.1"
+    is-nil "^1.0.0"
+    is-object "^1.0.1"
+    is-symbol "^1.0.1"
 
 tough-cookie@^2.3.2, tough-cookie@~2.3.0, tough-cookie@~2.3.3:
   version "2.3.3"

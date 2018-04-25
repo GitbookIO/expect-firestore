@@ -1,12 +1,39 @@
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userID} {
-      allow read: if true;
-      allow update: if isCurrentUser(userID);
+      allow read: if resource.data != null && resource.data.public == true;
+      allow write: if isCurrentUser(userID);
+
+      match /companies/{companyID} {
+          allow read: if isPublicUser(userID);
+          allow update: if isCurrentUser(userID);
+      }
+    }
+
+    match /settings/{userID} {
+        allow read: if isCurrentUser(userID);
+        allow write: if (
+            isCurrentUser(userID) &&
+
+            // Test that getAfter works
+            getAfter(/databases/$(database)/documents/users/$(userID)) != null
+        );
+    }
+
+    match /settings2/{userID} {
+        allow read: if true;
+        allow write: if (
+            request.resource.data.something is string
+        );
+    }
+
+    function isCurrentUser(userID) {
+        return request.auth.uid == userID
+    }
+
+
+    function isPublicUser(userID) {
+        return get(/databases/$(database)/documents/users/$(userID)).data.public == true
     }
   }
-}
-
-function isCurrentUser(userID) {
-    return request.auth.uid == userID
 }

@@ -1,19 +1,24 @@
 /* @flow */
 import Path from 'path';
+import FS from 'fs';
 import google from 'googleapis';
+import set from 'object-set';
 import type {
     GoogleCredential,
-    FirestoreCollections,
-    FirestoreCollection,
-    FirestoreDocument,
-    FirestoreTestInput,
-    FirestoreTestResult,
-    FirestoreAuth
+    Collections,
+    Collection,
+    Document,
+    FirestoreTestCase,
+    FirestoreMockFunction,
+    FirestoreAuth,
+    TestSummary
 } from './types';
+
+import Batch, { type BatchOperation } from './batch';
 
 class Database {
     credential: GoogleCredential;
-    collections: FirestoreCollections;
+    collections: Collections;
     rules: string;
     client: ?google.firebaserules;
 
@@ -22,21 +27,48 @@ class Database {
         credential,
         rules
     }: {
-        data: FirestoreCollections,
+        data?: Collections,
         credential: GoogleCredential,
-        rules: string
+        rules?: string
     }) {
         this.credential = credential;
+        this.collections = data || {};
+        this.rules = rules || '';
+    }
+
+    /*
+     * Replace the mock data.
+     */
+    setData(data: Collections) {
         this.collections = data;
+    }
+
+    /*
+     * Update the rules.
+     */
+    setRules(rules: string) {
         this.rules = rules;
+    }
+
+    /*
+     * Read the rules from a file.
+     */
+    setRulesFromFile(rulesFile: string) {
+        const content = FS.readFileSync(rulesFile, 'utf8');
+        this.setRules(content);
     }
 
     /*
      * Get all documents in a collection.
      */
-    getCollection(collectionPath: string): FirestoreCollection {
+    getCollection(collectionPath: string): Collection {
         const collectionName = Path.basename(collectionPath);
         const docPath = Path.dirname(collectionPath);
+
+        if (docPath == '.') {
+            const { collections } = this;
+            return collections[collectionName] || [];
+        }
 
         const doc = this.getDocument(docPath);
 
@@ -51,7 +83,7 @@ class Database {
     /*
      * Get the value of a document (fields and collection).
      */
-    getDocument(docPath: string): ?FirestoreDocument {
+    getDocument(docPath: string): ?Document {
         const docId = Path.basename(docPath);
         const collectionPath = Path.dirname(docPath);
 
@@ -70,9 +102,9 @@ class Database {
      * List all documents in the database.
      */
     getDocuments(
-        collections: FirestoreCollections = this.collections,
+        collections: Collections = this.collections,
         parentPath: string = ''
-    ): { path: string, doc: FirestoreDocument }[] {
+    ): { path: string, doc: Document }[] {
         return Object.keys(collections).reduce((result, collectionName) => {
             const collectionPath = Path.join(parentPath, collectionName);
 
@@ -95,42 +127,14 @@ class Database {
     }
 
     /*
-     * Create the mocks for the API to represent the dataset.
-     */
-    createMockFunctions() {
-        const documents = this.getDocuments();
-
-        return documents.reduce(
-            (functions, { path, doc }) =>
-                functions.concat([
-                    {
-                        function: 'get',
-                        args: [{ exact_value: createDocumentPath(path) }],
-                        result: {
-                            value: {
-                                data: doc ? doc.fields : null
-                            }
-                        }
-                    },
-                    {
-                        function: 'exists',
-                        args: [{ exact_value: createDocumentPath(path) }],
-                        result: {
-                            value: {
-                                data: !!doc
-                            }
-                        }
-                    }
-                ]),
-            []
-        );
-    }
-
-    /*
      * Authorize the API client.
      */
     async authorize(): Promise<void> {
         const { credential } = this;
+
+        if (this.client) {
+            return;
+        }
 
         const jwtClient = new google.auth.JWT(
             credential.client_email,
@@ -140,7 +144,7 @@ class Database {
             null
         );
 
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             jwtClient.authorize((error, tokens) => {
                 if (error) {
                     reject(error);
@@ -159,9 +163,7 @@ class Database {
     /*
      * Test an assertion against the current rules and dataset.
      */
-    async testRules(test: FirestoreTestInput): Promise<FirestoreTestResult> {
-        const functionMocks = this.createMockFunctions();
-
+    async testRules(testCases: FirestoreTestCase[]): Promise<TestSummary> {
         return new Promise((resolve, reject) => {
             const params = {
                 name: `projects/${this.credential.project_id}`,
@@ -175,12 +177,7 @@ class Database {
                         ]
                     },
                     testSuite: {
-                        testCases: [
-                            {
-                                ...test,
-                                functionMocks
-                            }
-                        ]
+                        testCases
                     }
                 }
             };
@@ -191,11 +188,41 @@ class Database {
                 );
             }
 
-            this.client.projects.test(params, (error, result) => {
+            this.client.projects.test(params, (error, json) => {
                 if (error) {
                     reject(error);
                 } else {
-                    resolve(result.testResults[0]);
+                    // There are some syntax error in the rules
+                    if (json.issues) {
+                        const message = json.issues
+                            .map(
+                                issue =>
+                                    `Line ${
+                                        issue.sourcePosition.line
+                                    }, column ${issue.sourcePosition.column}: ${
+                                        issue.description
+                                    }`
+                            )
+                            .join('\n\n');
+
+                        throw new Error(message);
+                    }
+
+                    const { testResults } = json;
+                    let success = true;
+
+                    const tests = testResults.map((result, i) => {
+                        success = result.state == 'SUCCESS' && success;
+                        return {
+                            case: testCases[i],
+                            result
+                        };
+                    });
+
+                    resolve({
+                        success,
+                        tests
+                    });
                 }
             });
         });
@@ -205,64 +232,205 @@ class Database {
      * Utilities for assertions.
      */
 
-    async canGet(auth: FirestoreAuth, path: string): Promise<boolean> {
-        const result = await this.testRules(createGetTest(true, auth, path));
-
-        return result.state == 'SUCCESS';
+    async canGet(auth: FirestoreAuth, path: string): Promise<TestSummary> {
+        return this.testRules([this.createGetTest(true, auth, path)]);
     }
 
-    async cannotGet(auth: FirestoreAuth, path: string): Promise<boolean> {
-        const result = await this.testRules(createGetTest(false, auth, path));
+    async cannotGet(auth: FirestoreAuth, path: string): Promise<TestSummary> {
+        return this.testRules([this.createGetTest(false, auth, path)]);
+    }
 
-        return result.state == 'SUCCESS';
+    async canCommit(
+        auth: FirestoreAuth,
+        batch: BatchOperation[]
+    ): Promise<TestSummary> {
+        return this.testRules(this.createCommitTest(true, auth, batch));
+    }
+
+    async cannotCommit(
+        auth: FirestoreAuth,
+        batch: BatchOperation[]
+    ): Promise<TestSummary> {
+        return this.testRules(this.createCommitTest(false, auth, batch));
     }
 
     async canSet(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createSetTest(true, auth, path, data)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<TestSummary> {
+        return this.canCommit(auth, [Batch.set(path, data)]);
     }
 
     async cannotSet(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createSetTest(false, auth, path, data)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<TestSummary> {
+        return this.cannotCommit(auth, [Batch.set(path, data)]);
     }
 
     async canUpdate(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createUpdateTest(true, auth, path, data)
-        );
-
-        return result.state == 'SUCCESS';
+    ): Promise<TestSummary> {
+        return this.canCommit(auth, [Batch.update(path, data)]);
     }
 
     async cannotUpdate(
         auth: FirestoreAuth,
         path: string,
         data: Object
-    ): Promise<boolean> {
-        const result = await this.testRules(
-            createUpdateTest(false, auth, path, data)
+    ): Promise<TestSummary> {
+        return this.cannotCommit(auth, [Batch.update(path, data)]);
+    }
+
+    /*
+     * Factories for tests
+     */
+    createGetTest(
+        allow: boolean,
+        auth: FirestoreAuth,
+        path: string
+    ): FirestoreTestCase {
+        const functionMocks = this.createMockFunctions();
+        const doc = this.getDocument(path);
+        const request = {
+            auth,
+            path: createDocumentPath(path),
+            method: 'get'
+        };
+
+        return {
+            expectation: allow ? 'ALLOW' : 'DENY',
+            request,
+            resource: { data: doc ? doc.fields : null },
+            functionMocks
+        };
+    }
+
+    /*
+     * Create a test for a commit with multiple updates.
+     */
+    createCommitTest(
+        allow: boolean,
+        auth: FirestoreAuth,
+        batch: BatchOperation[]
+    ): FirestoreTestCase[] {
+        const expectation = allow ? 'ALLOW' : 'DENY';
+        const baseFunctionMocks = this.createMockFunctions();
+        const afterFunctionMocks = this.createBatchAfterFunctionMocks(batch);
+
+        const functionMocks = [...baseFunctionMocks, ...afterFunctionMocks];
+
+        return batch.map(operation => {
+            const doc = this.getDocument(operation.document);
+
+            let method = operation.method;
+            if (operation.method == 'set') {
+                method = doc ? 'update' : 'create';
+            }
+
+            const request = {
+                auth,
+                path: createDocumentPath(operation.document),
+                method,
+                resource: operation.data
+                    ? {
+                          data: operation.data
+                      }
+                    : null
+            };
+            const resource = {
+                data: doc ? doc.fields : null
+            };
+
+            return {
+                expectation,
+                request,
+                resource,
+                functionMocks
+            };
+        });
+    }
+
+    /*
+     * Create the mocks for the API to represent the dataset.
+     */
+    createMockFunctions(): FirestoreMockFunction[] {
+        const documents = this.getDocuments();
+        const defaults = [
+            {
+                function: 'get',
+                args: [{ anyValue: {} }],
+                result: {
+                    value: null
+                }
+            },
+            {
+                function: 'getAfter',
+                args: [{ anyValue: {} }],
+                result: {
+                    value: null
+                }
+            },
+            {
+                function: 'exists',
+                args: [{ anyValue: {} }],
+                result: {
+                    value: false
+                }
+            }
+        ];
+
+        const docMocks = documents.reduce(
+            (functions, { path, doc }) =>
+                functions.concat([
+                    createFunctionMock(
+                        'get',
+                        createDocumentPath(path),
+                        doc ? { data: doc.fields } : null
+                    ),
+                    createFunctionMock(
+                        'exists',
+                        createDocumentPath(path),
+                        !!doc
+                    )
+                ]),
+            []
         );
 
-        return result.state == 'SUCCESS';
+        return defaults.concat(docMocks);
+    }
+
+    /*
+     * Create the mock for the getAfter functions.
+     */
+    createBatchAfterFunctionMocks(
+        batch: BatchOperation[]
+    ): FirestoreMockFunction[] {
+        return batch.map(operation => {
+            const doc = this.getDocument(operation.document);
+            let after = doc ? doc.fields : null;
+
+            if (operation.method == 'set') {
+                after = operation.data;
+            } else if (operation.method == 'delete') {
+                after = null;
+            } else if (operation.method == 'update') {
+                after = after || {};
+                Object.keys(operation.data).forEach(key => {
+                    set(after, key, operation.data[key]);
+                });
+            }
+
+            return createFunctionMock(
+                'getAfter',
+                createDocumentPath(operation.document),
+                after ? { data: after } : null
+            );
+        });
     }
 }
 
@@ -270,61 +438,17 @@ function createDocumentPath(path: string): string {
     return `/databases/(default)/documents/${path}`;
 }
 
-function createGetTest(
-    allow: boolean,
-    auth: FirestoreAuth,
-    path: string
-): FirestoreTestInput {
-    const request = {
-        auth,
-        path: createDocumentPath(path),
-        method: 'get'
-    };
+function createFunctionMock(
+    functionName: string,
+    arg: string,
+    value: any
+): FirestoreMockFunction {
     return {
-        expectation: allow ? 'ALLOW' : 'DENY',
-        request
-    };
-}
-
-function createSetTest(
-    allow: boolean,
-    auth: FirestoreAuth,
-    path: string,
-    data: Object
-): FirestoreTestInput {
-    const request = {
-        auth,
-        path: createDocumentPath(path),
-        method: 'create'
-    };
-    const resource = {
-        data
-    };
-    return {
-        expectation: allow ? 'ALLOW' : 'DENY',
-        request,
-        resource
-    };
-}
-
-function createUpdateTest(
-    allow: boolean,
-    auth: FirestoreAuth,
-    path: string,
-    data: Object
-): FirestoreTestInput {
-    const request = {
-        auth,
-        path: createDocumentPath(path),
-        method: 'update'
-    };
-    const resource = {
-        data
-    };
-    return {
-        expectation: allow ? 'ALLOW' : 'DENY',
-        request,
-        resource
+        function: functionName,
+        args: [{ exact_value: arg }],
+        result: {
+            value
+        }
     };
 }
 

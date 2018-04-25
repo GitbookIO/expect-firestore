@@ -1,11 +1,14 @@
 {
   "name": "expect-firestore",
-  "version": "0.1.1",
+  "version": "1.0.0-pre.0",
   "description": "API client and Jasmine matchers for the Firestore Rules API",
   "main": "./lib/index.js",
   "repository": "https://github.com/GitbookIO/expect-firestore",
   "author": "Samy Pessé <samy@gitbook.com>",
   "license": "MIT",
+  "files": [
+    "lib"
+  ],
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
@@ -32,7 +35,8 @@
     "prepare": "babel --ignore '**/__tests__/*.js' --out-dir ./lib ./src"
   },
   "dependencies": {
-    "googleapis": "^23.0.0"
+    "googleapis": "^23.0.0",
+    "object-set": "^1.0.1"
   },
   "jest": {
     "testEnvironment": "node",

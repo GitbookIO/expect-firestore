@@ -12,8 +12,6 @@ $ yarn add expect-firestore
 
 ## Usage
 
-### As a module
-
 ```js
 import assert from 'assert';
 import * as firestore from 'expect-firestore';
@@ -48,32 +46,50 @@ await database.authorize();
 
 // Test a get
 const result = await database.canGet({ uid: 'some_user' }, 'users/userA');
-assert.equal(result, true);
+firestore.assert(result);
 ```
 
-### Example with jest / jasmine
+## API
 
-This module is designed to easily be integrated into jest or jasmine. It exports a singleton database.
+#### Global
 
-```js
-import fs from 'fs';
-import * as firestore from 'expect-firestore';
+- `new firestore.Database({ data, credentials, rules })`: Create a database instance to test rules
 
-const CREDENTIAL = require('credential.json');
-const RULES = fs.readFileSync('firestore.rules', { encoding: 'utf8' });
+  ```js
+  const database = new firestore.Database({
+      credentials: require('credential.json')
+  });
+  ```
+- `firestore.assert(test: TestResult)`: Throw a human readable error if test failed, otherwise do nothing
 
-beforeAll(async () => {
-    await firestore.authorize(CREDENTIAL);
+  ```js
+  const result = await database.canGet({}, 'users/userA');
+  firestore.assert(result);
+  ```
 
-    // setData and setRules can be called as many time as wanted
-    firestore.setRules(RULES);
-    firestore.setData({
-        ...
-    })
-});
+#### `firestore.Database`
 
-it('should allow everyone to read an user profile', async () => {
-    expect(await firestore.canGet({}, 'users/userA')).toBe(true);
-});
+- `database.authorize(): Promise<void>`: Prepare the testing environment, it must be called at least once.
 
-```
+Run `get`, `set`, `update` and `commit` tests using:
+
+- `database.canGet(auth: FirestoreAuth, document: string): Promise<TestResult>`
+- `database.cannotGet(auth: FirestoreAuth, document: string): Promise<TestResult>`
+- `database.canSet(auth: FirestoreAuth, document: string, value: any): Promise<TestResult>`
+- `database.cannotSet(auth: FirestoreAuth, document: string, value: any): Promise<TestResult>`
+- `database.canUpdate(auth: FirestoreAuth, document: string, values: Object): Promise<TestResult>`
+- `database.cannotUpdate(auth: FirestoreAuth, document: string, values: Object): Promise<TestResult>`
+- `database.canCommit(auth: FirestoreAuth, batch: BatchOperation[]): Promise<TestResult>`
+- `database.cannotCommit(auth: FirestoreAuth, batch: firestore.BatchOperation[]): Promise<TestResult>`
+
+Control test testing environment using:
+
+- `database.setData(data: FirestoreCollections)`: Update the dataset
+- `database.setRules(rules: string)`: Update the rules being tested
+- `database.setRulesFromFile(file: string)`: Read the rules from a file
+
+### `firestore.Batch`
+
+- `firestore.Batch.set(document: string, value: any): BatchOperation`
+- `firestore.Batch.update(document: string, values: Object): BatchOperation`
+- `firestore.Batch.delete(document: string): BatchOperation`
