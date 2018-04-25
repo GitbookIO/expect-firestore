@@ -7,44 +7,44 @@ const Batch = {
 };
 
 type OperationSet = {
-    type: 'set',
+    method: 'set',
     document: string,
-    value: any
+    data: any
 };
 
 type OperationUpdate = {
-    type: 'update',
+    method: 'update',
     document: string,
-    values: { [string]: any }
+    data: { [string]: any }
 };
 
 type OperationDelete = {
-    type: 'delete',
+    method: 'delete',
     document: string
 };
 
 /*
  * Factories to create the operations.
  */
-function set(document: string, value: any): OperationSet {
+function set(document: string, data: any): OperationSet {
     return {
-        type: 'set',
+        method: 'set',
         document,
-        value
+        data
     };
 }
 
-function update(document: string, values: { [string]: any }): OperationUpdate {
+function update(document: string, data: { [string]: any }): OperationUpdate {
     return {
-        type: 'update',
+        method: 'update',
         document,
-        values
+        data
     };
 }
 
 function del(document: string): OperationDelete {
     return {
-        type: 'delete',
+        method: 'delete',
         document
     };
 }

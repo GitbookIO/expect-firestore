@@ -35,7 +35,8 @@
     "prepare": "babel --ignore '**/__tests__/*.js' --out-dir ./lib ./src"
   },
   "dependencies": {
-    "googleapis": "^23.0.0"
+    "googleapis": "^23.0.0",
+    "object-set": "^1.0.1"
   },
   "jest": {
     "testEnvironment": "node",

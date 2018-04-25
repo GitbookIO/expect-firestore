@@ -1,19 +1,23 @@
 /* @flow */
-import type { FirestoreTestResult, FirestoreTestInput } from './types';
+import type { TestSummary, FirestoreTestCase } from './types';
 
 /*
  * Assert and print a human readable error with the result of a test.
  */
-function assert(result: FirestoreTestResult): void {
-    if (result.state == 'SUCCESS') {
+function assert(summary: TestSummary): void {
+    if (summary.success) {
         return;
     }
 
-    if (result.debugMessages) {
-        throw new Error(result.debugMessages.join('\n\n'));
+    const firstFailing = summary.tests.find(
+        ({ result }) => result.state == 'FAILURE'
+    );
+
+    if (firstFailing.result.debugMessages) {
+        throw new Error(firstFailing.result.debugMessages.join('\n\n'));
     }
 
-    throw new Error(getTestDescription(result.test));
+    throw new Error(getTestDescription(firstFailing.case));
 }
 
 function getTestDescription(test: FirestoreTestInput): string {

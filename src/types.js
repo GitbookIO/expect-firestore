@@ -7,7 +7,7 @@ export type GoogleCredential = {
     private_key: string
 };
 
-export type FirestoreDocument = {
+export type Document = {
     key: string,
     fields: {
         [string]: mixed
@@ -15,10 +15,10 @@ export type FirestoreDocument = {
     collections: FirestoreCollections
 };
 
-export type FirestoreCollection = FirestoreDocument[];
+export type Collection = Document[];
 
-export type FirestoreCollections = {
-    [string]: FirestoreCollection
+export type Collections = {
+    [string]: Collection
 };
 
 // Parameters to define the Firebase authentication being used
@@ -26,28 +26,49 @@ export type FirestoreAuth = {
     uid?: string
 };
 
-// Request in a test (for GETs)
-export type FirestoreRequest = {
-    auth: FirestoreAuth,
-    path: string,
-    method: 'get' | 'list' | 'create' | 'update' | 'delete' | 'read' | 'write'
-};
-
-// Resource for a test (for write)
-export type FirestoreResource = {
-    data: ?Object
+// Mock for a function
+export type FirestoreMockFunction = {
+    function: string,
+    args: [{ exact_value: string }],
+    result: {
+        value: {
+            data: any
+        }
+    }
 };
 
 // Input for a test
-export type FirestoreTestInput = {
+export type FirestoreTestCase = {
     expectation: 'ALLOW' | 'DENY',
-    request: FirestoreRequest,
-    resource?: FirestoreResource
+    request: {
+        auth: FirestoreAuth,
+        path: string,
+        method:
+            | 'get'
+            | 'list'
+            | 'create'
+            | 'update'
+            | 'delete'
+            | 'read'
+            | 'write'
+    },
+    resource?: {
+        data: ?Object
+    },
+    functionMocks: FirestoreMockFunction[]
 };
 
 // Result of a test.
 export type FirestoreTestResult = {
-    test: FirestoreTestInput,
     state: 'SUCCESS' | 'FAILURE',
     debugMessages?: string[]
+};
+
+// Summary of tests
+export type TestSummary = {
+    success: boolean,
+    tests: {
+        case: FirestoreTestCase,
+        result: FirestoreTestResult
+    }[]
 };
