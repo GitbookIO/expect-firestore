@@ -98,6 +98,15 @@ describe('canSet', () => {
             'Expected the update operation to succeed.'
         );
     });
+
+    it('should throw error for rejected operations (validation)', async () => {
+        const result = await db.canSet({ uid: 'userA' }, 'settings2/userA', {
+            something: 2
+        });
+        expect(() => assert(result)).toThrow(
+            'Expected the update operation to succeed.'
+        );
+    });
 });
 
 describe('canCommit', () => {
