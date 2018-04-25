@@ -208,9 +208,7 @@ class Database {
                         throw new Error(message);
                     }
 
-                    const {
-                        testResults
-                    }: { testResults: FirestoreTestResult[] } = json;
+                    const { testResults } = json;
                     let success = true;
 
                     const tests = testResults.map((result, i) => {
@@ -328,13 +326,16 @@ class Database {
 
         return batch.map(operation => {
             const doc = this.getDocument(operation.document);
+
+            let method = operation.method;
+            if (operation.method == 'set') {
+                method = doc ? 'update' : 'create';
+            }
+
             const request = {
                 auth,
                 path: createDocumentPath(operation.document),
-                method:
-                    operation.method == 'set'
-                        ? doc ? 'update' : 'create'
-                        : operation.method
+                method
             };
             const resource = {
                 data: operation.data || null
