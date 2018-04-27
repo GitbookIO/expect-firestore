@@ -342,9 +342,11 @@ class Database {
                       }
                     : null
             };
-            const resource = {
-                data: doc ? doc.fields : null
-            };
+            const resource = doc 
+                    ? {
+                          data: doc.fields
+                      }
+                    : null;
 
             return {
                 expectation,
