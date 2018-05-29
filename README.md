@@ -13,6 +13,7 @@ $ yarn add expect-firestore
 ## Usage
 
 ```js
+import 'babel-polyfill';
 import assert from 'assert';
 import * as firestore from 'expect-firestore';
 
