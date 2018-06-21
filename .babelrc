@@ -4,6 +4,7 @@
       "stage-0"
   ],
   "plugins": [
-    "transform-flow-strip-types"
+    "transform-flow-strip-types",
+    "babel-plugin-transform-runtime"
   ]
 }
